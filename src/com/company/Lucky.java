@@ -1,9 +1,10 @@
 package com.company;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Lucky {
-    static int x = 0;
-    static int count = 0;
-    public static int threadCount = 0;
+    static AtomicInteger x = new AtomicInteger(0);
+    static AtomicInteger count = new AtomicInteger(0);
 
     static class LuckyThread extends Thread {
 
@@ -12,16 +13,13 @@ public class Lucky {
         @Override
         public void run() {
             int temp;
-            while (x <= 1_000_000 - threadCount) {
-                synchronized (lock) {
-                    x++;
-                    temp = x;
-                }
+            while (x.get() < 999999) {
+                    temp = x.incrementAndGet();
                 if ((temp % 10) + (temp / 10) % 10 + (temp / 100) % 10 == //Проверка "счастливого билета"
                         (temp / 1000) % 10 + (temp / 10000) % 10 + (temp / 100000) % 10) {
-                    System.out.println(temp);
+                    System.out.println(Thread.currentThread().getName() + ": " + temp);
                     synchronized (lock) {
-                        count++;
+                        count.incrementAndGet();
                     }
                 }
             }
@@ -36,9 +34,6 @@ public class Lucky {
         t1.start();
         t2.start();
         t3.start();
-
-        Lucky.threadCount = Thread.activeCount() - 1;
-
         t1.join();
         t2.join();
         t3.join();
